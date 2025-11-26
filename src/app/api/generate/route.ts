@@ -262,10 +262,10 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
     horizontal: "center",
     vertical: "middle",
   };
-  // Text Black
+  // Text Gray
   sidebar.font = {
     size: 8,
-    color: { argb: TEXT_COLOR },
+    color: { argb: "FF888888" },
     bold: true,
     name: FONT,
   };
@@ -439,7 +439,7 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
   const terms = sheet.getCell(r + 28, 2);
   terms.value = cfg.terms;
   terms.font = {
-    size: 9,
+    size: 12,
     bold: true,
     italic: true,
     color: { argb: "FF000000" },
