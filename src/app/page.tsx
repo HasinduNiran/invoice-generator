@@ -297,6 +297,18 @@ export default function Home() {
               </div>
             </div>
 
+            {/* Greeting & Note */}
+            <div className="mb-6 text-center space-y-1">
+              <input
+                type="text"
+                name="greeting"
+                value={config.greeting}
+                onChange={handleChange}
+                className="w-full text-center font-bold text-gray-800 border-none focus:ring-0 bg-transparent placeholder-gray-400"
+                placeholder="Greeting Message"
+              />
+            </div>
+
             {/* Employee Placeholder */}
             <div className="mb-8 space-y-2 pl-4 border-l-4 border-black bg-gray-50 p-4 rounded-r">
               <div className="grid grid-cols-[120px_1fr] gap-2 items-center">

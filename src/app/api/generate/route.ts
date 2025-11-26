@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     // Generate Invoices
     let currentEmpIndex = 0;
     let writeRow = 1;
-    const invoiceHeight = 26;
+    const invoiceHeight = 32;
     const gap = 5;
     let currentInvoiceNum = Number(config.startInv);
 
@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
         currentInvoiceNum++;
       }
 
-      writeRow += 60;
+      writeRow += 70;
     }
 
     // Write to buffer
@@ -152,8 +152,7 @@ export async function POST(req: NextRequest) {
       headers: {
         "Content-Type":
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "Content-Disposition":
-          'attachment; filename="Professional_Invoices.xlsx"',
+        "Content-Disposition": 'attachment; filename="P&S_main_Invoices.xlsx"',
       },
     });
   } catch (error: any) {
@@ -253,8 +252,8 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
     right: { style: "medium", color: { argb: THEME_COLOR } },
   };
 
-  // Watermark Sidebar (Row r to r+25, Col 1)
-  sheet.mergeCells(r, 1, r + 25, 1);
+  // Watermark Sidebar (Row r to r+28, Col 1)
+  sheet.mergeCells(r, 1, r + 28, 1);
   const sidebar = sheet.getCell(r, 1);
   sidebar.value = (cfg.company || "").toUpperCase() + "  -  OFFICIAL COPY";
   // No fill (White)
@@ -310,6 +309,18 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
   info.alignment = { horizontal: "center", vertical: "middle" };
   // No fill
 
+  // Greeting & Note
+  sheet.mergeCells(r + 7, 2, r + 7, 5);
+  const greeting = sheet.getCell(r + 7, 2);
+  greeting.value = cfg.greeting;
+  greeting.font = {
+    bold: true,
+    size: 11,
+    color: { argb: TEXT_COLOR },
+    name: FONT,
+  };
+  greeting.alignment = { horizontal: "center" };
+
   // Details
   const labelFont = {
     size: 9,
@@ -321,24 +332,24 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
     bottom: { style: "dotted", color: { argb: BORDER_COLOR } },
   };
 
-  sheet.getCell(r + 7, 2).value = "NAME";
-  sheet.getCell(r + 7, 2).font = labelFont;
-  sheet.mergeCells(r + 7, 3, r + 7, 5);
-  sheet.getCell(r + 7, 3).border = valueBorder;
-
-  sheet.getCell(r + 8, 2).value = "EPF NO";
-  sheet.getCell(r + 8, 2).font = labelFont;
-  sheet.mergeCells(r + 8, 3, r + 8, 5);
-  sheet.getCell(r + 8, 3).border = valueBorder;
-
-  sheet.getCell(r + 9, 2).value = "DEPARTMENT";
+  sheet.getCell(r + 9, 2).value = "NAME";
   sheet.getCell(r + 9, 2).font = labelFont;
   sheet.mergeCells(r + 9, 3, r + 9, 5);
   sheet.getCell(r + 9, 3).border = valueBorder;
 
+  sheet.getCell(r + 10, 2).value = "EPF NO";
+  sheet.getCell(r + 10, 2).font = labelFont;
+  sheet.mergeCells(r + 10, 3, r + 10, 5);
+  sheet.getCell(r + 10, 3).border = valueBorder;
+
+  sheet.getCell(r + 11, 2).value = "DEPARTMENT";
+  sheet.getCell(r + 11, 2).font = labelFont;
+  sheet.mergeCells(r + 11, 3, r + 11, 5);
+  sheet.getCell(r + 11, 3).border = valueBorder;
+
   // Table Header
   const headers = ["DESCRIPTION", "QTY", "PRICE", "TOTAL"];
-  const headerRow = sheet.getRow(r + 11);
+  const headerRow = sheet.getRow(r + 13);
   for (let i = 0; i < 4; i++) {
     const cell = headerRow.getCell(i + 2);
     cell.value = headers[i];
@@ -361,7 +372,7 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
 
   // Table Body (2 rows)
   for (let i = 0; i < 2; i++) {
-    const row = sheet.getRow(r + 12 + i);
+    const row = sheet.getRow(r + 14 + i);
     for (let j = 0; j < 4; j++) {
       const cell = row.getCell(j + 2);
       cell.font = { size: 10, color: { argb: TEXT_COLOR }, name: FONT };
@@ -375,8 +386,8 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
   }
 
   // Grand Total
-  sheet.mergeCells(r + 15, 4, r + 16, 4);
-  const gtLabel = sheet.getCell(r + 15, 4);
+  sheet.mergeCells(r + 17, 4, r + 18, 4);
+  const gtLabel = sheet.getCell(r + 17, 4);
   gtLabel.value = "GRAND TOTAL";
   gtLabel.font = {
     bold: true,
@@ -386,8 +397,8 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
   };
   gtLabel.alignment = { horizontal: "right", vertical: "middle" };
 
-  sheet.mergeCells(r + 15, 5, r + 16, 5);
-  const gtVal = sheet.getCell(r + 15, 5);
+  sheet.mergeCells(r + 17, 5, r + 18, 5);
+  const gtVal = sheet.getCell(r + 17, 5);
   // Text Black
   gtVal.font = {
     bold: true,
@@ -405,8 +416,8 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
   };
 
   // Footer
-  sheet.mergeCells(r + 18, 2, r + 18, 5);
-  const footer = sheet.getCell(r + 18, 2);
+  sheet.mergeCells(r + 20, 2, r + 20, 5);
+  const footer = sheet.getCell(r + 20, 2);
   footer.value = "VALID UNTIL: " + cfg.valid;
   footer.alignment = { horizontal: "center" };
   footer.font = {
@@ -417,20 +428,21 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
   };
 
   // Signature
-  sheet.mergeCells(r + 22, 2, r + 22, 5);
-  const sig = sheet.getCell(r + 22, 2);
+  sheet.mergeCells(r + 24, 2, r + 24, 5);
+  const sig = sheet.getCell(r + 24, 2);
   sig.value = "_________________________\nAUTHORIZED SIGNATURE";
   sig.alignment = { horizontal: "right", vertical: "bottom", wrapText: true };
   sig.font = { size: 8, color: { argb: TEXT_COLOR }, name: FONT };
 
   // Terms
-  sheet.mergeCells(r + 25, 2, r + 25, 5);
-  const terms = sheet.getCell(r + 25, 2);
+  sheet.mergeCells(r + 28, 2, r + 28, 5);
+  const terms = sheet.getCell(r + 28, 2);
   terms.value = cfg.terms;
   terms.font = {
     size: 9,
+    bold: true,
     italic: true,
-    color: { argb: "FF666666" },
+    color: { argb: "FF000000" },
     name: FONT,
   };
   terms.alignment = {
@@ -440,11 +452,11 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
   };
 
   // Developer Credit
-  sheet.mergeCells(r + 26, 1, r + 26, 5);
-  const dev = sheet.getCell(r + 26, 1);
-  dev.value = "Developed by Flowiix (pvt) LTD";
-  dev.alignment = { horizontal: "center", vertical: "middle" };
-  dev.font = { size: 7, color: { argb: "FF888888" }, name: FONT };
+  // sheet.mergeCells(r + 26, 1, r + 26, 5);
+  // const dev = sheet.getCell(r + 26, 1);
+  // dev.value = "Developed by Flowiix (pvt) LTD";
+  // dev.alignment = { horizontal: "center", vertical: "middle" };
+  // dev.font = { size: 7, color: { argb: "FF888888" }, name: FONT };
 
   // Outer Border (Manual)
   // Top
@@ -455,18 +467,18 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
     };
   // Bottom
   for (let c = 1; c <= 5; c++)
-    sheet.getCell(r + 25, c).border = {
-      ...sheet.getCell(r + 25, c).border,
+    sheet.getCell(r + 28, c).border = {
+      ...sheet.getCell(r + 28, c).border,
       bottom: { style: "medium", color: { argb: THEME_COLOR } },
     };
   // Left
-  for (let row = r; row <= r + 25; row++)
+  for (let row = r; row <= r + 28; row++)
     sheet.getCell(row, 1).border = {
       ...sheet.getCell(row, 1).border,
       left: { style: "medium", color: { argb: THEME_COLOR } },
     };
   // Right
-  for (let row = r; row <= r + 25; row++)
+  for (let row = r; row <= r + 28; row++)
     sheet.getCell(row, 5).border = {
       ...sheet.getCell(row, 5).border,
       right: { style: "medium", color: { argb: THEME_COLOR } },
@@ -488,16 +500,16 @@ function fillInvoiceData(
 
   const detailFont = { size: 10, color: { argb: TEXT_COLOR }, name: FONT };
 
-  sheet.getCell(r + 7, 3).value = ": " + emp.name;
-  sheet.getCell(r + 7, 3).font = detailFont;
+  sheet.getCell(r + 9, 3).value = ": " + emp.name;
+  sheet.getCell(r + 9, 3).font = detailFont;
 
-  sheet.getCell(r + 8, 3).value = ": " + emp.epf;
-  sheet.getCell(r + 8, 3).font = detailFont;
+  sheet.getCell(r + 10, 3).value = ": " + emp.epf;
+  sheet.getCell(r + 10, 3).font = detailFont;
 
   let d = emp.dept;
   if (!d || d === "" || d === "N/A") d = "-";
-  sheet.getCell(r + 9, 3).value = ": " + d;
-  sheet.getCell(r + 9, 3).font = detailFont;
+  sheet.getCell(r + 11, 3).value = ": " + d;
+  sheet.getCell(r + 11, 3).font = detailFont;
 
   const fmt = (n: any) =>
     "Rs " +
@@ -511,36 +523,36 @@ function fillInvoiceData(
   const grandTotal = total1 + total2;
 
   if (cfg.item1) {
-    sheet.getCell(r + 12, 2).value = cfg.item1;
-    sheet.getCell(r + 12, 3).value = cfg.qty1;
-    sheet.getCell(r + 12, 4).value = fmt(cfg.price1);
-    sheet.getCell(r + 12, 5).value = fmt(total1);
+    sheet.getCell(r + 14, 2).value = cfg.item1;
+    sheet.getCell(r + 14, 3).value = cfg.qty1;
+    sheet.getCell(r + 14, 4).value = fmt(cfg.price1);
+    sheet.getCell(r + 14, 5).value = fmt(total1);
 
-    sheet.getCell(r + 12, 3).alignment = {
+    sheet.getCell(r + 14, 3).alignment = {
       horizontal: "center",
       vertical: "middle",
     };
-    sheet.getCell(r + 12, 5).alignment = {
+    sheet.getCell(r + 14, 5).alignment = {
       horizontal: "right",
       vertical: "middle",
     };
   }
 
   if (cfg.item2) {
-    sheet.getCell(r + 13, 2).value = cfg.item2;
-    sheet.getCell(r + 13, 3).value = cfg.qty2;
-    sheet.getCell(r + 13, 4).value = fmt(cfg.price2);
-    sheet.getCell(r + 13, 5).value = fmt(total2);
+    sheet.getCell(r + 15, 2).value = cfg.item2;
+    sheet.getCell(r + 15, 3).value = cfg.qty2;
+    sheet.getCell(r + 15, 4).value = fmt(cfg.price2);
+    sheet.getCell(r + 15, 5).value = fmt(total2);
 
-    sheet.getCell(r + 13, 3).alignment = {
+    sheet.getCell(r + 15, 3).alignment = {
       horizontal: "center",
       vertical: "middle",
     };
-    sheet.getCell(r + 13, 5).alignment = {
+    sheet.getCell(r + 15, 5).alignment = {
       horizontal: "right",
       vertical: "middle",
     };
   }
 
-  sheet.getCell(r + 15, 5).value = fmt(grandTotal);
+  sheet.getCell(r + 17, 5).value = fmt(grandTotal);
 }
