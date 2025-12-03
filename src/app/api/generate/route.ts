@@ -419,14 +419,14 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
     color: { argb: THEME_COLOR },
     name: FONT,
   };
-  gtLabel.alignment = { horizontal: "right", vertical: "middle" };
+  gtLabel.alignment = { horizontal: "center", vertical: "middle" };
 
   sheet.mergeCells(r + 17, 5, r + 18, 5);
   const gtVal = sheet.getCell(r + 17, 5);
   // Text Black
   gtVal.font = {
     bold: true,
-    size: 14,
+    size: 12,
     color: { argb: TEXT_COLOR },
     name: FONT,
   };
