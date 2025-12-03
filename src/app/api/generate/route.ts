@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     // Generate Invoices
     let currentEmpIndex = 0;
     let writeRow = 1;
-    const invoiceHeight = 32;
+    const invoiceHeight = 29;
     const gap = 5;
     let currentInvoiceNum = Number(config.startInv);
 
@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
         currentInvoiceNum++;
       }
 
-      writeRow += 70;
+      writeRow += 67;
     }
 
     // Write to buffer
@@ -243,6 +243,11 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
   const WHITE = "FFFFFFFF";
   const BORDER_COLOR = "FF000000"; // Black
   const FONT = "Calibri";
+
+  // Set Row Height
+  for (let i = 0; i <= 28; i++) {
+    sheet.getRow(r + i).height = 15.75;
+  }
 
   // Helper for borders
   const borderStyle: Partial<ExcelJS.Borders> = {
@@ -385,6 +390,25 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
     }
   }
 
+  // Ensure empty row after table also has borders if needed, or just rely on outer border
+  // But user said "last line not printed", maybe referring to the bottom of the table section
+  // Let's add a bottom border to the row after the items to close the table visually if it's separate
+  // Actually, the outer border handles the main box.
+  // If the user means the table grid, let's ensure the last item row has a strong bottom border
+  // The loop above sets 'thin' bottom border.
+  // Let's check if there is a gap before Grand Total.
+  // Grand Total is at r+17. Table ends at r+15. r+16 is empty.
+  // Let's add borders to r+16 to make it look continuous or close the table.
+  const emptyRow = sheet.getRow(r + 16);
+  for (let j = 0; j < 4; j++) {
+    const cell = emptyRow.getCell(j + 2);
+    cell.border = {
+      left: { style: "thin", color: { argb: BORDER_COLOR } },
+      right: { style: "thin", color: { argb: BORDER_COLOR } },
+      bottom: { style: "thin", color: { argb: BORDER_COLOR } },
+    };
+  }
+
   // Grand Total
   sheet.mergeCells(r + 17, 4, r + 18, 4);
   const gtLabel = sheet.getCell(r + 17, 4);
@@ -498,7 +522,7 @@ function fillInvoiceData(
   sheet.getCell(r + 5, 2).value =
     "INVOICE NO: " + invStr + "   |   DATE: " + cfg.date;
 
-  const detailFont = { size: 10, color: { argb: TEXT_COLOR }, name: FONT };
+  const detailFont = { size: 12, color: { argb: TEXT_COLOR }, name: FONT };
 
   sheet.getCell(r + 9, 3).value = ": " + emp.name;
   sheet.getCell(r + 9, 3).font = detailFont;
