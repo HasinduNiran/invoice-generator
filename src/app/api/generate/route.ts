@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     // Generate Invoices
     let currentEmpIndex = 0;
     let writeRow = 1;
-    const invoiceHeight = 29;
+    const invoiceHeight = 25;
     const gap = 5;
     let currentInvoiceNum = Number(config.startInv);
 
@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
         currentInvoiceNum++;
       }
 
-      writeRow += 67;
+      writeRow += 59;
     }
 
     // Write to buffer
@@ -245,7 +245,7 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
   const FONT = "Calibri";
 
   // Set Row Height
-  for (let i = 0; i <= 28; i++) {
+  for (let i = 0; i <= 24; i++) {
     sheet.getRow(r + i).height = 15.75;
   }
 
@@ -257,8 +257,8 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
     right: { style: "medium", color: { argb: THEME_COLOR } },
   };
 
-  // Watermark Sidebar (Row r to r+28, Col 1)
-  sheet.mergeCells(r, 1, r + 28, 1);
+  // Watermark Sidebar (Row r to r+24, Col 1)
+  sheet.mergeCells(r, 1, r + 24, 1);
   const sidebar = sheet.getCell(r, 1);
   sidebar.value = (cfg.company || "").toUpperCase() + "  -  OFFICIAL COPY";
   // No fill (White)
@@ -440,8 +440,8 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
   };
 
   // Footer
-  sheet.mergeCells(r + 20, 2, r + 20, 5);
-  const footer = sheet.getCell(r + 20, 2);
+  sheet.mergeCells(r + 19, 2, r + 19, 5);
+  const footer = sheet.getCell(r + 19, 2);
   footer.value = "VALID UNTIL: " + cfg.valid;
   footer.alignment = { horizontal: "center" };
   footer.font = {
@@ -452,15 +452,15 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
   };
 
   // Signature
-  sheet.mergeCells(r + 24, 2, r + 24, 5);
-  const sig = sheet.getCell(r + 24, 2);
+  sheet.mergeCells(r + 21, 2, r + 21, 5);
+  const sig = sheet.getCell(r + 21, 2);
   sig.value = "_________________________\nAUTHORIZED SIGNATURE";
   sig.alignment = { horizontal: "right", vertical: "bottom", wrapText: true };
   sig.font = { size: 8, color: { argb: TEXT_COLOR }, name: FONT };
 
   // Terms
-  sheet.mergeCells(r + 28, 2, r + 28, 5);
-  const terms = sheet.getCell(r + 28, 2);
+  sheet.mergeCells(r + 24, 2, r + 24, 5);
+  const terms = sheet.getCell(r + 24, 2);
   terms.value = cfg.terms;
   terms.font = {
     size: 12,
@@ -491,18 +491,18 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
     };
   // Bottom
   for (let c = 1; c <= 5; c++)
-    sheet.getCell(r + 28, c).border = {
-      ...sheet.getCell(r + 28, c).border,
+    sheet.getCell(r + 24, c).border = {
+      ...sheet.getCell(r + 24, c).border,
       bottom: { style: "medium", color: { argb: THEME_COLOR } },
     };
   // Left
-  for (let row = r; row <= r + 28; row++)
+  for (let row = r; row <= r + 24; row++)
     sheet.getCell(row, 1).border = {
       ...sheet.getCell(row, 1).border,
       left: { style: "medium", color: { argb: THEME_COLOR } },
     };
   // Right
-  for (let row = r; row <= r + 28; row++)
+  for (let row = r; row <= r + 24; row++)
     sheet.getCell(row, 5).border = {
       ...sheet.getCell(row, 5).border,
       right: { style: "medium", color: { argb: THEME_COLOR } },
