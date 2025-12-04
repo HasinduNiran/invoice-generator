@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
       }
       if (logoBottomId !== undefined) {
         outSheet.addImage(logoBottomId, {
-          tl: { col: 1.1, row: writeRow + 19.5 }, // Approx position
+          tl: { col: 1.2, row: writeRow + 20 }, // Approx position
           ext: { width: 50, height: 50 },
           editAs: "oneCell",
         });
@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
         }
         if (logoBottomId !== undefined) {
           outSheet.addImage(logoBottomId, {
-            tl: { col: 1.1, row: bottomRow + 19.5 },
+            tl: { col: 1.2, row: bottomRow + 20 },
             ext: { width: 50, height: 50 },
             editAs: "oneCell",
           });

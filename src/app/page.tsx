@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent, ChangeEvent } from "react";
+import { useState, FormEvent, ChangeEvent, useEffect } from "react";
 import Image from "next/image";
 
 export default function Home() {
@@ -29,6 +29,19 @@ export default function Home() {
     price2: 700,
     qty2: 1,
   });
+
+  // Load config from localStorage on mount
+  useEffect(() => {
+    const savedConfig = localStorage.getItem("invoiceConfig");
+    if (savedConfig) {
+      setConfig(JSON.parse(savedConfig));
+    }
+  }, []);
+
+  // Save config to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("invoiceConfig", JSON.stringify(config));
+  }, [config]);
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
