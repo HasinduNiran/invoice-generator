@@ -360,17 +360,26 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
   // Name
   sheet.getCell(r + 9, 2).value = "NAME";
   sheet.getCell(r + 9, 2).font = labelFont;
-  sheet.mergeCells(r + 9, 3, r + 9, 6);
+  sheet.mergeCells(r + 9, 4, r + 9, 6);
+  sheet.getCell(r + 9, 4).border = {
+    bottom: { style: "dotted", color: { argb: THEME_COLOR } },
+  };
 
   // EPF
   sheet.getCell(r + 10, 2).value = "EPF NO";
   sheet.getCell(r + 10, 2).font = labelFont;
-  sheet.mergeCells(r + 10, 3, r + 10, 6);
+  sheet.mergeCells(r + 10, 4, r + 10, 6);
+  sheet.getCell(r + 10, 4).border = {
+    bottom: { style: "dotted", color: { argb: THEME_COLOR } },
+  };
 
   // Dept
   sheet.getCell(r + 11, 2).value = "DEPARTMENT";
   sheet.getCell(r + 11, 2).font = labelFont;
-  sheet.mergeCells(r + 11, 3, r + 11, 6);
+  sheet.mergeCells(r + 11, 4, r + 11, 6);
+  sheet.getCell(r + 11, 4).border = {
+    bottom: { style: "dotted", color: { argb: THEME_COLOR } },
+  };
 
   // Table Header
   const headers = ["DESCRIPTION", "QTY", "PRICE", "TOTAL"];
@@ -390,14 +399,6 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
   descHeader.border = {
     top: { style: "medium", color: { argb: THEME_COLOR } },
     left: { style: "medium", color: { argb: THEME_COLOR } },
-    bottom: { style: "thin", color: { argb: THEME_COLOR } },
-    right: { style: "thin", color: { argb: THEME_COLOR } },
-  };
-  // Apply border to merged cell 3 as well for consistency if needed, but ExcelJS handles merged borders usually via top-left
-  // But we need to ensure the right border of Col 3 is thin
-  headerRow.getCell(3).border = {
-    top: { style: "medium", color: { argb: THEME_COLOR } },
-    left: { style: "thin", color: { argb: THEME_COLOR } },
     bottom: { style: "thin", color: { argb: THEME_COLOR } },
     right: { style: "thin", color: { argb: THEME_COLOR } },
   };
@@ -469,12 +470,7 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
       bottom: { style: "thin", color: { argb: THEME_COLOR } },
       right: { style: "thin", color: { argb: THEME_COLOR } },
     };
-    row.getCell(3).border = {
-      top: { style: "thin", color: { argb: THEME_COLOR } },
-      left: { style: "thin", color: { argb: THEME_COLOR } },
-      bottom: { style: "thin", color: { argb: THEME_COLOR } },
-      right: { style: "thin", color: { argb: THEME_COLOR } },
-    };
+    // row.getCell(3).border removed to avoid conflict with merged cell border
 
     // QTY (Col 4)
     const qtyCell = row.getCell(4);
@@ -643,16 +639,16 @@ function fillInvoiceData(
 
   const detailFont = { size: 12, color: { argb: TEXT_COLOR }, name: FONT };
 
-  sheet.getCell(r + 9, 3).value = ": " + emp.name;
-  sheet.getCell(r + 9, 3).font = detailFont;
+  sheet.getCell(r + 9, 4).value = ": " + emp.name;
+  sheet.getCell(r + 9, 4).font = detailFont;
 
-  sheet.getCell(r + 10, 3).value = ": " + emp.epf;
-  sheet.getCell(r + 10, 3).font = detailFont;
+  sheet.getCell(r + 10, 4).value = ": " + emp.epf;
+  sheet.getCell(r + 10, 4).font = detailFont;
 
   let d = emp.dept;
   if (!d || d === "" || d === "N/A") d = "-";
-  sheet.getCell(r + 11, 3).value = ": " + d;
-  sheet.getCell(r + 11, 3).font = detailFont;
+  sheet.getCell(r + 11, 4).value = ": " + d;
+  sheet.getCell(r + 11, 4).font = detailFont;
 
   const fmt = (n: any) =>
     "Rs " +
