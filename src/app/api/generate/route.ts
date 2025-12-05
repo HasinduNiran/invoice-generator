@@ -50,11 +50,12 @@ export async function POST(req: NextRequest) {
     const outSheet = outWorkbook.addWorksheet("Professional Invoices");
 
     // Setup Columns
-    outSheet.getColumn(1).width = 4; // Watermark (approx 25px)
-    outSheet.getColumn(2).width = 50; // Description (approx 350px)
-    outSheet.getColumn(3).width = 6; // Qty (approx 40px)
-    outSheet.getColumn(4).width = 13; // Price (approx 90px)
-    outSheet.getColumn(5).width = 13; // Total (approx 90px)
+    outSheet.getColumn(1).width = 4; // Watermark
+    outSheet.getColumn(2).width = 15; // NAME / DEPT Labels
+    outSheet.getColumn(3).width = 25; // Description continuation
+    outSheet.getColumn(4).width = 8; // Qty
+    outSheet.getColumn(5).width = 12; // Price
+    outSheet.getColumn(6).width = 15; // Amount
 
     // Load Images
     let logoTopId: number | undefined;
@@ -100,8 +101,8 @@ export async function POST(req: NextRequest) {
       }
       if (logoBottomId !== undefined) {
         outSheet.addImage(logoBottomId, {
-          tl: { col: 1.2, row: writeRow + 20 }, // Approx position
-          ext: { width: 50, height: 50 },
+          tl: { col: 1.75, row: writeRow + 19.0 }, // Centered in merged rows 20-22
+          ext: { width: 45, height: 45 },
           editAs: "oneCell",
         });
       }
@@ -128,8 +129,8 @@ export async function POST(req: NextRequest) {
         }
         if (logoBottomId !== undefined) {
           outSheet.addImage(logoBottomId, {
-            tl: { col: 1.2, row: bottomRow + 20 },
-            ext: { width: 50, height: 50 },
+            tl: { col: 1.78, row: bottomRow + 19.5 },
+            ext: { width: 45, height: 45 },
             editAs: "oneCell",
           });
         }
@@ -137,7 +138,7 @@ export async function POST(req: NextRequest) {
         // Cut Line
         const cutRow = writeRow + invoiceHeight + 2;
         const cutRowCell = outSheet.getRow(cutRow);
-        for (let c = 1; c <= 5; c++) {
+        for (let c = 1; c <= 6; c++) {
           const cell = cutRowCell.getCell(c);
           cell.border = { bottom: { style: "dashed" } };
         }
@@ -254,12 +255,25 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
   }
 
   // Helper for borders
-  const borderStyle: Partial<ExcelJS.Borders> = {
+  const thinBorder: Partial<ExcelJS.Borders> = {
+    top: { style: "thin", color: { argb: THEME_COLOR } },
+    left: { style: "thin", color: { argb: THEME_COLOR } },
+    bottom: { style: "thin", color: { argb: THEME_COLOR } },
+    right: { style: "thin", color: { argb: THEME_COLOR } },
+  };
+  const thickBorder: Partial<ExcelJS.Borders> = {
     top: { style: "medium", color: { argb: THEME_COLOR } },
     left: { style: "medium", color: { argb: THEME_COLOR } },
     bottom: { style: "medium", color: { argb: THEME_COLOR } },
     right: { style: "medium", color: { argb: THEME_COLOR } },
   };
+
+  // Apply thin borders to all cells in the invoice area (Col 2-6, Row r to r+24)
+  for (let row = r; row <= r + 24; row++) {
+    for (let col = 2; col <= 6; col++) {
+      sheet.getCell(row, col).border = thinBorder;
+    }
+  }
 
   // Watermark Sidebar (Row r to r+24, Col 1)
   sheet.mergeCells(r, 1, r + 24, 1);
@@ -278,9 +292,11 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
     bold: true,
     name: FONT,
   };
+  // Sidebar Border
+  sidebar.border = thickBorder;
 
   // Company Header
-  sheet.mergeCells(r + 2, 2, r + 2, 5);
+  sheet.mergeCells(r + 2, 2, r + 2, 6);
   const compName = sheet.getCell(r + 2, 2);
   compName.value = (cfg.company || "").toUpperCase();
   compName.font = {
@@ -291,14 +307,14 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
   };
   compName.alignment = { horizontal: "center", vertical: "bottom" };
 
-  sheet.mergeCells(r + 3, 2, r + 3, 5);
+  sheet.mergeCells(r + 3, 2, r + 3, 6);
   const compAddr = sheet.getCell(r + 3, 2);
   compAddr.value = cfg.address;
   compAddr.font = { size: 9, color: { argb: TEXT_COLOR }, name: FONT };
   compAddr.alignment = { horizontal: "center", vertical: "top" };
 
   // Title
-  sheet.mergeCells(r + 4, 2, r + 4, 5);
+  sheet.mergeCells(r + 4, 2, r + 4, 6);
   const title = sheet.getCell(r + 4, 2);
   title.value = cfg.title;
   title.font = {
@@ -307,11 +323,18 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
     color: { argb: TEXT_COLOR },
     name: FONT,
   };
-  title.alignment = { horizontal: "center" };
-  title.border = { bottom: { style: "thick", color: { argb: THEME_COLOR } } };
+  title.alignment = { horizontal: "center", vertical: "middle" };
+  // Thick bottom border for title section
+  for (let c = 2; c <= 6; c++) {
+    const cell = sheet.getCell(r + 4, c);
+    cell.border = {
+      ...thinBorder,
+      bottom: { style: "medium", color: { argb: THEME_COLOR } },
+    };
+  }
 
   // Info Row
-  sheet.mergeCells(r + 5, 2, r + 5, 5);
+  sheet.mergeCells(r + 5, 2, r + 5, 6);
   const info = sheet.getCell(r + 5, 2);
   // Value set in fillInvoiceData
   info.font = { size: 10, bold: true, color: { argb: TEXT_COLOR }, name: FONT };
@@ -319,7 +342,7 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
   // No fill
 
   // Greeting & Note
-  sheet.mergeCells(r + 7, 2, r + 7, 5);
+  sheet.mergeCells(r + 7, 2, r + 7, 6);
   const greeting = sheet.getCell(r + 7, 2);
   greeting.value = cfg.greeting;
   greeting.font = {
@@ -328,7 +351,7 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
     color: { argb: TEXT_COLOR },
     name: FONT,
   };
-  greeting.alignment = { horizontal: "center" };
+  greeting.alignment = { horizontal: "center", vertical: "middle" };
 
   // Details
   const labelFont = {
@@ -337,84 +360,191 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
     color: { argb: THEME_COLOR },
     name: FONT,
   };
-  const valueBorder: Partial<ExcelJS.Borders> = {
+
+  // Name
+  sheet.getCell(r + 9, 2).value = "NAME";
+  sheet.getCell(r + 9, 2).font = labelFont;
+  sheet.mergeCells(r + 9, 3, r + 9, 6);
+  // Dotted line for value
+  sheet.getCell(r + 9, 3).border = {
+    ...thinBorder,
     bottom: { style: "dotted", color: { argb: BORDER_COLOR } },
   };
 
-  sheet.getCell(r + 9, 2).value = "NAME";
-  sheet.getCell(r + 9, 2).font = labelFont;
-  sheet.mergeCells(r + 9, 3, r + 9, 5);
-  sheet.getCell(r + 9, 3).border = valueBorder;
-
+  // EPF
   sheet.getCell(r + 10, 2).value = "EPF NO";
   sheet.getCell(r + 10, 2).font = labelFont;
-  sheet.mergeCells(r + 10, 3, r + 10, 5);
-  sheet.getCell(r + 10, 3).border = valueBorder;
+  sheet.mergeCells(r + 10, 3, r + 10, 6);
+  sheet.getCell(r + 10, 3).border = {
+    ...thinBorder,
+    bottom: { style: "dotted", color: { argb: BORDER_COLOR } },
+  };
 
+  // Dept
   sheet.getCell(r + 11, 2).value = "DEPARTMENT";
   sheet.getCell(r + 11, 2).font = labelFont;
-  sheet.mergeCells(r + 11, 3, r + 11, 5);
-  sheet.getCell(r + 11, 3).border = valueBorder;
+  sheet.mergeCells(r + 11, 3, r + 11, 6);
+  sheet.getCell(r + 11, 3).border = {
+    ...thinBorder,
+    bottom: { style: "dotted", color: { argb: BORDER_COLOR } },
+  };
 
   // Table Header
   const headers = ["DESCRIPTION", "QTY", "PRICE", "TOTAL"];
   const headerRow = sheet.getRow(r + 13);
-  for (let i = 0; i < 4; i++) {
-    const cell = headerRow.getCell(i + 2);
-    cell.value = headers[i];
-    // Text Black
-    cell.font = {
-      bold: true,
-      size: 9,
-      color: { argb: TEXT_COLOR },
-      name: FONT,
-    };
-    cell.alignment = { horizontal: "center", vertical: "middle" };
-    // No fill
-    cell.border = {
-      top: { style: "thin", color: { argb: THEME_COLOR } },
-      bottom: { style: "thin", color: { argb: THEME_COLOR } },
-      left: { style: "thin", color: { argb: THEME_COLOR } },
-      right: { style: "thin", color: { argb: THEME_COLOR } },
-    };
-  }
+
+  // Description (Merged Col 2-3)
+  sheet.mergeCells(r + 13, 2, r + 13, 3);
+  const descHeader = headerRow.getCell(2);
+  descHeader.value = headers[0];
+  descHeader.font = {
+    bold: true,
+    size: 9,
+    color: { argb: TEXT_COLOR },
+    name: FONT,
+  };
+  descHeader.alignment = { horizontal: "center", vertical: "middle" };
+  descHeader.border = {
+    top: { style: "medium", color: { argb: THEME_COLOR } },
+    bottom: { style: "medium", color: { argb: THEME_COLOR } },
+    left: { style: "medium", color: { argb: THEME_COLOR } },
+    right: { style: "thin", color: { argb: THEME_COLOR } },
+  };
+  // Apply border to merged cell 3 as well for consistency if needed, but ExcelJS handles merged borders usually via top-left
+  // But we need to ensure the right border of Col 3 is thin
+  headerRow.getCell(3).border = {
+    top: { style: "medium", color: { argb: THEME_COLOR } },
+    bottom: { style: "medium", color: { argb: THEME_COLOR } },
+    right: { style: "thin", color: { argb: THEME_COLOR } },
+  };
+
+  // QTY (Col 4)
+  const qtyHeader = headerRow.getCell(4);
+  qtyHeader.value = headers[1];
+  qtyHeader.font = {
+    bold: true,
+    size: 9,
+    color: { argb: TEXT_COLOR },
+    name: FONT,
+  };
+  qtyHeader.alignment = { horizontal: "center", vertical: "middle" };
+  qtyHeader.border = {
+    top: { style: "medium", color: { argb: THEME_COLOR } },
+    bottom: { style: "medium", color: { argb: THEME_COLOR } },
+    left: { style: "thin", color: { argb: THEME_COLOR } },
+    right: { style: "thin", color: { argb: THEME_COLOR } },
+  };
+
+  // PRICE (Col 5)
+  const priceHeader = headerRow.getCell(5);
+  priceHeader.value = headers[2];
+  priceHeader.font = {
+    bold: true,
+    size: 9,
+    color: { argb: TEXT_COLOR },
+    name: FONT,
+  };
+  priceHeader.alignment = { horizontal: "center", vertical: "middle" };
+  priceHeader.border = {
+    top: { style: "medium", color: { argb: THEME_COLOR } },
+    bottom: { style: "medium", color: { argb: THEME_COLOR } },
+    left: { style: "thin", color: { argb: THEME_COLOR } },
+    right: { style: "thin", color: { argb: THEME_COLOR } },
+  };
+
+  // TOTAL (Col 6)
+  const totalHeader = headerRow.getCell(6);
+  totalHeader.value = headers[3];
+  totalHeader.font = {
+    bold: true,
+    size: 9,
+    color: { argb: TEXT_COLOR },
+    name: FONT,
+  };
+  totalHeader.alignment = { horizontal: "center", vertical: "middle" };
+  totalHeader.border = {
+    top: { style: "medium", color: { argb: THEME_COLOR } },
+    bottom: { style: "medium", color: { argb: THEME_COLOR } },
+    left: { style: "thin", color: { argb: THEME_COLOR } },
+    right: { style: "medium", color: { argb: THEME_COLOR } },
+  };
 
   // Table Body (2 rows)
   for (let i = 0; i < 2; i++) {
-    const row = sheet.getRow(r + 14 + i);
-    for (let j = 0; j < 4; j++) {
-      const cell = row.getCell(j + 2);
-      cell.font = { size: 10, color: { argb: TEXT_COLOR }, name: FONT };
-      cell.alignment = { vertical: "middle" };
-      cell.border = {
-        bottom: { style: "thin", color: { argb: BORDER_COLOR } },
-        left: { style: "thin", color: { argb: BORDER_COLOR } },
-        right: { style: "thin", color: { argb: BORDER_COLOR } },
-      };
-    }
-  }
+    const rowNum = r + 14 + i;
+    const row = sheet.getRow(rowNum);
 
-  // Ensure empty row after table also has borders if needed, or just rely on outer border
-  // But user said "last line not printed", maybe referring to the bottom of the table section
-  // Let's add a bottom border to the row after the items to close the table visually if it's separate
-  // Actually, the outer border handles the main box.
-  // If the user means the table grid, let's ensure the last item row has a strong bottom border
-  // The loop above sets 'thin' bottom border.
-  // Let's check if there is a gap before Grand Total.
-  // Grand Total is at r+17. Table ends at r+15. r+16 is empty.
-  // Let's add borders to r+16 to make it look continuous or close the table.
-  const emptyRow = sheet.getRow(r + 16);
-  for (let j = 0; j < 4; j++) {
-    const cell = emptyRow.getCell(j + 2);
-    cell.border = {
+    // Merge Description (Col 2-3)
+    sheet.mergeCells(rowNum, 2, rowNum, 3);
+    const descCell = row.getCell(2);
+    descCell.font = { size: 10, color: { argb: TEXT_COLOR }, name: FONT };
+    descCell.alignment = { vertical: "middle" };
+    descCell.border = {
+      bottom: { style: "thin", color: { argb: BORDER_COLOR } },
+      left: { style: "medium", color: { argb: THEME_COLOR } },
+      right: { style: "thin", color: { argb: BORDER_COLOR } },
+    };
+    // Ensure Col 3 has right border
+    row.getCell(3).border = {
+      bottom: { style: "thin", color: { argb: BORDER_COLOR } },
+      right: { style: "thin", color: { argb: BORDER_COLOR } },
+    };
+
+    // QTY (Col 4)
+    const qtyCell = row.getCell(4);
+    qtyCell.font = { size: 10, color: { argb: TEXT_COLOR }, name: FONT };
+    qtyCell.alignment = { vertical: "middle", horizontal: "center" };
+    qtyCell.border = {
+      bottom: { style: "thin", color: { argb: BORDER_COLOR } },
       left: { style: "thin", color: { argb: BORDER_COLOR } },
       right: { style: "thin", color: { argb: BORDER_COLOR } },
+    };
+
+    // PRICE (Col 5)
+    const priceCell = row.getCell(5);
+    priceCell.font = { size: 10, color: { argb: TEXT_COLOR }, name: FONT };
+    priceCell.alignment = { vertical: "middle", horizontal: "right" };
+    priceCell.border = {
       bottom: { style: "thin", color: { argb: BORDER_COLOR } },
+      left: { style: "thin", color: { argb: BORDER_COLOR } },
+      right: { style: "thin", color: { argb: BORDER_COLOR } },
+    };
+
+    // TOTAL (Col 6)
+    const totalCell = row.getCell(6);
+    totalCell.font = { size: 10, color: { argb: TEXT_COLOR }, name: FONT };
+    totalCell.alignment = { vertical: "middle", horizontal: "right" };
+    totalCell.border = {
+      bottom: { style: "thin", color: { argb: BORDER_COLOR } },
+      left: { style: "thin", color: { argb: BORDER_COLOR } },
+      right: { style: "medium", color: { argb: THEME_COLOR } },
     };
   }
 
+  // Bottom border of the table block (after the last item row)
+  const lastItemRow = sheet.getRow(r + 15);
+  for (let j = 0; j < 5; j++) {
+    // 2 to 6
+    const cell = lastItemRow.getCell(j + 2);
+    cell.border = {
+      ...cell.border,
+      bottom: { style: "medium", color: { argb: THEME_COLOR } },
+    };
+  }
+
+  // Empty row after table (r+16) - just thin borders inside, but thick outside
+  const emptyRow = sheet.getRow(r + 16);
+  for (let j = 0; j < 5; j++) {
+    const cell = emptyRow.getCell(j + 2);
+    cell.border = thinBorder;
+    if (j === 0)
+      cell.border.left = { style: "medium", color: { argb: THEME_COLOR } };
+    if (j === 4)
+      cell.border.right = { style: "medium", color: { argb: THEME_COLOR } };
+  }
+
   // Grand Total
-  sheet.mergeCells(r + 17, 4, r + 18, 4);
+  sheet.mergeCells(r + 17, 4, r + 18, 5); // Merge QTY, PRICE for Label
   const gtLabel = sheet.getCell(r + 17, 4);
   gtLabel.value = "GRAND TOTAL";
   gtLabel.font = {
@@ -424,9 +554,13 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
     name: FONT,
   };
   gtLabel.alignment = { horizontal: "center", vertical: "middle" };
+  // Thick border around Grand Total Label
+  gtLabel.border = thickBorder;
+  // Ensure merged cell 5 has borders
+  sheet.getCell(r + 17, 5).border = thickBorder;
 
-  sheet.mergeCells(r + 17, 5, r + 18, 5);
-  const gtVal = sheet.getCell(r + 17, 5);
+  sheet.mergeCells(r + 17, 6, r + 18, 6); // TOTAL Value
+  const gtVal = sheet.getCell(r + 17, 6);
   // Text Black
   gtVal.font = {
     bold: true,
@@ -435,16 +569,11 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
     name: FONT,
   };
   gtVal.alignment = { horizontal: "center", vertical: "middle" };
-  // No fill
-  gtVal.border = {
-    top: { style: "medium", color: { argb: THEME_COLOR } },
-    bottom: { style: "medium", color: { argb: THEME_COLOR } },
-    left: { style: "medium", color: { argb: THEME_COLOR } },
-    right: { style: "medium", color: { argb: THEME_COLOR } },
-  };
+  // Thick border around Grand Total Value
+  gtVal.border = thickBorder;
 
   // Footer
-  sheet.mergeCells(r + 19, 2, r + 19, 5);
+  sheet.mergeCells(r + 19, 2, r + 19, 6);
   const footer = sheet.getCell(r + 19, 2);
   footer.value = "VALID UNTIL: " + cfg.valid;
   footer.alignment = { horizontal: "center" };
@@ -455,15 +584,18 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
     name: FONT,
   };
 
+  // Logo Box (Merged)
+  sheet.mergeCells(r + 20, 2, r + 22, 2);
+
   // Signature
-  sheet.mergeCells(r + 21, 2, r + 21, 5);
-  const sig = sheet.getCell(r + 21, 2);
+  sheet.mergeCells(r + 23, 4, r + 23, 6);
+  const sig = sheet.getCell(r + 23, 4);
   sig.value = "_________________________\nAUTHORIZED SIGNATURE";
   sig.alignment = { horizontal: "right", vertical: "bottom", wrapText: true };
   sig.font = { size: 8, color: { argb: TEXT_COLOR }, name: FONT };
 
   // Terms
-  sheet.mergeCells(r + 24, 2, r + 24, 5);
+  sheet.mergeCells(r + 24, 2, r + 24, 6);
   const terms = sheet.getCell(r + 24, 2);
   terms.value = cfg.terms;
   terms.font = {
@@ -479,22 +611,15 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
     wrapText: true,
   };
 
-  // Developer Credit
-  // sheet.mergeCells(r + 26, 1, r + 26, 5);
-  // const dev = sheet.getCell(r + 26, 1);
-  // dev.value = "Developed by Flowiix (pvt) LTD";
-  // dev.alignment = { horizontal: "center", vertical: "middle" };
-  // dev.font = { size: 7, color: { argb: "FF888888" }, name: FONT };
-
   // Outer Border (Manual)
   // Top
-  for (let c = 1; c <= 5; c++)
+  for (let c = 1; c <= 6; c++)
     sheet.getCell(r, c).border = {
       ...sheet.getCell(r, c).border,
       top: { style: "medium", color: { argb: THEME_COLOR } },
     };
   // Bottom
-  for (let c = 1; c <= 5; c++)
+  for (let c = 1; c <= 6; c++)
     sheet.getCell(r + 24, c).border = {
       ...sheet.getCell(r + 24, c).border,
       bottom: { style: "medium", color: { argb: THEME_COLOR } },
@@ -507,8 +632,8 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
     };
   // Right
   for (let row = r; row <= r + 24; row++)
-    sheet.getCell(row, 5).border = {
-      ...sheet.getCell(row, 5).border,
+    sheet.getCell(row, 6).border = {
+      ...sheet.getCell(row, 6).border,
       right: { style: "medium", color: { argb: THEME_COLOR } },
     };
 }
@@ -551,36 +676,48 @@ function fillInvoiceData(
   const grandTotal = total1 + total2;
 
   if (cfg.item1) {
-    sheet.getCell(r + 14, 2).value = cfg.item1;
-    sheet.getCell(r + 14, 3).value = cfg.qty1;
-    sheet.getCell(r + 14, 4).value = fmt(cfg.price1);
-    sheet.getCell(r + 14, 5).value = fmt(total1);
+    // sheet.getCell(r + 14, 2).value = "01"; // NO - Removed
+    // sheet.mergeCells(r + 14, 2, r + 14, 3); // Already merged in createTemplate
+    sheet.getCell(r + 14, 2).value = cfg.item1; // DESC
+    sheet.getCell(r + 14, 4).value = cfg.qty1; // QTY
+    sheet.getCell(r + 14, 5).value = fmt(cfg.price1); // PRICE
+    sheet.getCell(r + 14, 6).value = fmt(total1); // AMOUNT
 
-    sheet.getCell(r + 14, 3).alignment = {
+    sheet.getCell(r + 14, 2).alignment = {
+      horizontal: "left",
+      vertical: "middle",
+    }; // Left align desc
+    sheet.getCell(r + 14, 4).alignment = {
       horizontal: "center",
       vertical: "middle",
     };
-    sheet.getCell(r + 14, 5).alignment = {
+    sheet.getCell(r + 14, 6).alignment = {
       horizontal: "right",
       vertical: "middle",
     };
   }
 
   if (cfg.item2) {
-    sheet.getCell(r + 15, 2).value = cfg.item2;
-    sheet.getCell(r + 15, 3).value = cfg.qty2;
-    sheet.getCell(r + 15, 4).value = fmt(cfg.price2);
-    sheet.getCell(r + 15, 5).value = fmt(total2);
+    // sheet.getCell(r + 15, 2).value = "02"; // NO - Removed
+    // sheet.mergeCells(r + 15, 2, r + 15, 3); // Already merged in createTemplate
+    sheet.getCell(r + 15, 2).value = cfg.item2; // DESC
+    sheet.getCell(r + 15, 4).value = cfg.qty2; // QTY
+    sheet.getCell(r + 15, 5).value = fmt(cfg.price2); // PRICE
+    sheet.getCell(r + 15, 6).value = fmt(total2); // AMOUNT
 
-    sheet.getCell(r + 15, 3).alignment = {
+    sheet.getCell(r + 15, 2).alignment = {
+      horizontal: "left",
+      vertical: "middle",
+    };
+    sheet.getCell(r + 15, 4).alignment = {
       horizontal: "center",
       vertical: "middle",
     };
-    sheet.getCell(r + 15, 5).alignment = {
+    sheet.getCell(r + 15, 6).alignment = {
       horizontal: "right",
       vertical: "middle",
     };
   }
 
-  sheet.getCell(r + 17, 5).value = fmt(grandTotal);
+  sheet.getCell(r + 17, 6).value = fmt(grandTotal);
 }
