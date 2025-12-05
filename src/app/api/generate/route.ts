@@ -388,15 +388,16 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
   };
   descHeader.alignment = { horizontal: "center", vertical: "middle" };
   descHeader.border = {
-    top: { style: "thin", color: { argb: THEME_COLOR } },
-    left: { style: "thin", color: { argb: THEME_COLOR } },
+    top: { style: "medium", color: { argb: THEME_COLOR } },
+    left: { style: "medium", color: { argb: THEME_COLOR } },
     bottom: { style: "thin", color: { argb: THEME_COLOR } },
     right: { style: "thin", color: { argb: THEME_COLOR } },
   };
   // Apply border to merged cell 3 as well for consistency if needed, but ExcelJS handles merged borders usually via top-left
   // But we need to ensure the right border of Col 3 is thin
   headerRow.getCell(3).border = {
-    top: { style: "thin", color: { argb: THEME_COLOR } },
+    top: { style: "medium", color: { argb: THEME_COLOR } },
+    left: { style: "thin", color: { argb: THEME_COLOR } },
     bottom: { style: "thin", color: { argb: THEME_COLOR } },
     right: { style: "thin", color: { argb: THEME_COLOR } },
   };
@@ -412,7 +413,7 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
   };
   qtyHeader.alignment = { horizontal: "center", vertical: "middle" };
   qtyHeader.border = {
-    top: { style: "thin", color: { argb: THEME_COLOR } },
+    top: { style: "medium", color: { argb: THEME_COLOR } },
     left: { style: "thin", color: { argb: THEME_COLOR } },
     bottom: { style: "thin", color: { argb: THEME_COLOR } },
     right: { style: "thin", color: { argb: THEME_COLOR } },
@@ -429,7 +430,7 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
   };
   priceHeader.alignment = { horizontal: "center", vertical: "middle" };
   priceHeader.border = {
-    top: { style: "thin", color: { argb: THEME_COLOR } },
+    top: { style: "medium", color: { argb: THEME_COLOR } },
     left: { style: "thin", color: { argb: THEME_COLOR } },
     bottom: { style: "thin", color: { argb: THEME_COLOR } },
     right: { style: "thin", color: { argb: THEME_COLOR } },
@@ -446,10 +447,10 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
   };
   totalHeader.alignment = { horizontal: "center", vertical: "middle" };
   totalHeader.border = {
-    top: { style: "thin", color: { argb: THEME_COLOR } },
+    top: { style: "medium", color: { argb: THEME_COLOR } },
     left: { style: "thin", color: { argb: THEME_COLOR } },
     bottom: { style: "thin", color: { argb: THEME_COLOR } },
-    right: { style: "thin", color: { argb: THEME_COLOR } },
+    right: { style: "medium", color: { argb: THEME_COLOR } },
   };
 
   // Table Body (2 rows)
@@ -464,12 +465,13 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
     descCell.alignment = { vertical: "middle" };
     descCell.border = {
       top: { style: "thin", color: { argb: THEME_COLOR } },
-      left: { style: "thin", color: { argb: THEME_COLOR } },
+      left: { style: "medium", color: { argb: THEME_COLOR } },
       bottom: { style: "thin", color: { argb: THEME_COLOR } },
       right: { style: "thin", color: { argb: THEME_COLOR } },
     };
     row.getCell(3).border = {
       top: { style: "thin", color: { argb: THEME_COLOR } },
+      left: { style: "thin", color: { argb: THEME_COLOR } },
       bottom: { style: "thin", color: { argb: THEME_COLOR } },
       right: { style: "thin", color: { argb: THEME_COLOR } },
     };
@@ -504,11 +506,34 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
       top: { style: "thin", color: { argb: THEME_COLOR } },
       left: { style: "thin", color: { argb: THEME_COLOR } },
       bottom: { style: "thin", color: { argb: THEME_COLOR } },
-      right: { style: "thin", color: { argb: THEME_COLOR } },
+      right: { style: "medium", color: { argb: THEME_COLOR } },
     };
   }
 
-  // Table bottom borders already applied in cell loop
+  // Add medium bottom border to last table row (r+15)
+  const lastRow = sheet.getRow(r + 15);
+  lastRow.getCell(2).border = {
+    ...lastRow.getCell(2).border,
+    bottom: { style: "medium", color: { argb: THEME_COLOR } },
+    left: { style: "medium", color: { argb: THEME_COLOR } },
+  };
+  lastRow.getCell(3).border = {
+    ...lastRow.getCell(3).border,
+    bottom: { style: "medium", color: { argb: THEME_COLOR } },
+  };
+  lastRow.getCell(4).border = {
+    ...lastRow.getCell(4).border,
+    bottom: { style: "medium", color: { argb: THEME_COLOR } },
+  };
+  lastRow.getCell(5).border = {
+    ...lastRow.getCell(5).border,
+    bottom: { style: "medium", color: { argb: THEME_COLOR } },
+  };
+  lastRow.getCell(6).border = {
+    ...lastRow.getCell(6).border,
+    bottom: { style: "medium", color: { argb: THEME_COLOR } },
+    right: { style: "medium", color: { argb: THEME_COLOR } },
+  };
 
   // Empty row after table - no borders needed
 
@@ -535,7 +560,13 @@ function createTemplate(sheet: ExcelJS.Worksheet, startRow: number, cfg: any) {
     name: FONT,
   };
   gtVal.alignment = { horizontal: "center", vertical: "middle" };
-  // No border for Grand Total value
+  // Border around Grand Total value
+  gtVal.border = {
+    top: { style: "thin", color: { argb: THEME_COLOR } },
+    left: { style: "thin", color: { argb: THEME_COLOR } },
+    bottom: { style: "thin", color: { argb: THEME_COLOR } },
+    right: { style: "thin", color: { argb: THEME_COLOR } },
+  };
 
   // Footer
   sheet.mergeCells(r + 19, 2, r + 19, 6);
